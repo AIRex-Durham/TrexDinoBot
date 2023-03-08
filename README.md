@@ -24,3 +24,7 @@ Important Dates:
 ## Stage 1
 Presentation - [Navigate to Presentation](./Assets/AIRex_Project_Warmup.pptx)
 
+## Stage 2
+MVP Completed with options to show and exclude the obstacles from game. also added two options for human and AI player but AI model training logic is left to be completed.
+![image](./Assets/stage2ss.png)
+
