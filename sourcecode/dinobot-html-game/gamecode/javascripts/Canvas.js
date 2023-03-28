@@ -294,8 +294,16 @@ Runner.prototype = {
                 if (this.currentSpeed < this.config.MAX_SPEED) {
                     this.currentSpeed += this.config.ACCELERATION;
                 }
+                sendPlayStateToWebsocket(
+                    this.obstacles[0].xPos - this.tRex.xPos,
+                    this.obstacles[0].typeConfig.width,
+                    this.obstacles[0].typeConfig.height,
+                    this.currentSpeed,
+                    this.tRex.jumping
+                )
             } else {
                 this.gameOver();
+                sendEndOfPlayStateToWebsocket();
             }
             if (
                 this.distanceMeter.getActualDistance(this.distanceRan) >
