@@ -71,9 +71,9 @@
     <div id="obstacle_choices" style="display: inline-flex; justify-content: center; align-items: center; width: 100%;">
     </div>
     <div style="display: inline-flex; justify-content: center; align-items: center; width: 100%; margin-top: 50px;">
-        <input type="radio" name="player" value="humanplayer" checked>
+        <input type="radio" name="player" value="humanplayer" checked onclick="onPlayerTypeChange(this);">
           <label for="humanplayer">Human Player</label><br>
-          <input type="radio" name="player" value="aiplayer">
+          <input type="radio" name="player" value="aiplayer" onclick="onPlayerTypeChange(this);">
           <label for="aiplayer">AI Player</label><br>
     </div>
 </body>

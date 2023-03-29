@@ -1,15 +1,19 @@
 #!/usr/bin/env python
 
 import asyncio
+import json
+
 from websockets import serve
 
-from sourcecode.python_training.Train import Train
+from Train import Train
+from Predict import Predict
 
 
 class Websocket:
     def __init__(self):
         self.websocket = None
-        self.train = Train(self)
+        self.train = None
+        self.predict = None
 
     async def start_socket(self):
         print("start_socket")
@@ -17,7 +21,8 @@ class Websocket:
             await asyncio.Future()  # Run forever
 
     async def send_message(self, message):
-        await self.websocket.send(message)
+        print("send_message")
+        await self.websocket.send(json.dumps(message))
 
     async def handler(self, websocket):
         print("handler")
@@ -26,8 +31,17 @@ class Websocket:
             await self.handle_message(message)
 
     async def handle_message(self, message):
-        # await self.train.handle_message(message)
-        pass
+        message_json = json.loads(message)
+        print(message_json)
+        if message_json['state'] == 'predict':
+            self.predict = Predict()
+            self.predict.websocket = self
+            self.predict.predict_action(message_json)
+        else:
+            if self.train is None:
+                self.train = Train()
+                self.train.websocket = self
+            await self.train.handle_message(message_json)
 
 
 websocketObj = Websocket()

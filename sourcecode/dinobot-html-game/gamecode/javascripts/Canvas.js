@@ -294,13 +294,24 @@ Runner.prototype = {
                 if (this.currentSpeed < this.config.MAX_SPEED) {
                     this.currentSpeed += this.config.ACCELERATION;
                 }
-                sendPlayStateToWebsocket(
-                    this.obstacles[0].xPos - this.tRex.xPos,
-                    this.obstacles[0].typeConfig.width,
-                    this.obstacles[0].typeConfig.height,
-                    this.currentSpeed,
-                    this.tRex.jumping
-                )
+                if(this.horizon.obstacles[0] != undefined) {
+                    if(!runnerObj.isHumanPlayer) {
+                        predictPlay(
+                            this.horizon.obstacles[0].xPos - this.tRex.xPos,
+                            this.horizon.obstacles[0].typeConfig.width,
+                            this.horizon.obstacles[0].typeConfig.height,
+                            this.currentSpeed,
+                        )
+                    } else {
+//                        sendPlayStateToWebsocket(
+//                            this.horizon.obstacles[0].xPos - this.tRex.xPos,
+//                            this.horizon.obstacles[0].typeConfig.width,
+//                            this.horizon.obstacles[0].typeConfig.height,
+//                            this.currentSpeed,
+//                            this.tRex.jumping
+//                        )
+                    }
+                }
             } else {
                 this.gameOver();
                 sendEndOfPlayStateToWebsocket();
@@ -399,6 +410,17 @@ Runner.prototype = {
                 if (!this.tRex.jumping) {
                     this.playSound(this.soundFx.BUTTON_PRESS);
                     this.tRex.startJump();
+                    if(this.horizon.obstacles[0] != undefined) {
+                        if(runnerObj.isHumanPlayer) {
+                            sendPlayStateToWebsocket(
+                                    this.horizon.obstacles[0].xPos - this.tRex.xPos,
+                                    this.horizon.obstacles[0].typeConfig.width,
+                                    this.horizon.obstacles[0].typeConfig.height,
+                                    this.currentSpeed,
+                                    true
+                            )
+                        }
+                    }
                 }
             }
             if (
