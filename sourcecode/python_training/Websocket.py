@@ -6,6 +6,7 @@ import json
 from websockets import serve
 
 from Train import Train
+from TrainQRL import TrainQRL
 from Predict import Predict
 
 
@@ -36,10 +37,10 @@ class Websocket:
         if message_json['state'] == 'predict':
             self.predict = Predict()
             self.predict.websocket = self
-            self.predict.predict_action(message_json)
+            await self.predict.predict_action(message_json)
         else:
             if self.train is None:
-                self.train = Train()
+                self.train = TrainQRL()
                 self.train.websocket = self
             await self.train.handle_message(message_json)
 

@@ -8,7 +8,9 @@ function connectWebsocket() {
         // webSocket.send(JSON.stringify({ "data": url, "status": "play" }));
     };
     websocketObj.onmessage = (event) => {
-        console.log(event.data);
+        if(event != undefined && event.data != undefined && JSON.parse(event.data).labels == "Jump") {
+            makeJump()
+        }
     };
 }
 
@@ -28,7 +30,7 @@ function sendPlayStateToWebsocket(distance_to_obstacle, obstracle_width, obstacl
 
 function sendEndOfPlayStateToWebsocket() {
     websocketObj.send(JSON.stringify({
-        "state": "end"
+        "state": "crashed"
     }))
 }
 

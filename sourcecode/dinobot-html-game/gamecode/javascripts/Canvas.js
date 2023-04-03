@@ -296,6 +296,7 @@ Runner.prototype = {
                 }
                 if(this.horizon.obstacles[0] != undefined) {
                     if(!runnerObj.isHumanPlayer) {
+                        //Send analytics to train model
                         predictPlay(
                             this.horizon.obstacles[0].xPos - this.tRex.xPos,
                             this.horizon.obstacles[0].typeConfig.width,
@@ -303,13 +304,16 @@ Runner.prototype = {
                             this.currentSpeed,
                         )
                     } else {
-//                        sendPlayStateToWebsocket(
-//                            this.horizon.obstacles[0].xPos - this.tRex.xPos,
-//                            this.horizon.obstacles[0].typeConfig.width,
-//                            this.horizon.obstacles[0].typeConfig.height,
-//                            this.currentSpeed,
-//                            this.tRex.jumping
-//                        )
+                        //Send analytics to train model
+                        if(!this.tRex.jumping){
+                            sendPlayStateToWebsocket(
+                                this.horizon.obstacles[0].xPos - this.tRex.xPos,
+                                this.horizon.obstacles[0].typeConfig.width,
+                                this.horizon.obstacles[0].typeConfig.height,
+                                this.currentSpeed,
+                                this.tRex.jumping
+                            )
+                        }
                     }
                 }
             } else {
@@ -412,6 +416,7 @@ Runner.prototype = {
                     this.tRex.startJump();
                     if(this.horizon.obstacles[0] != undefined) {
                         if(runnerObj.isHumanPlayer) {
+                            //Send analytics to train model
                             sendPlayStateToWebsocket(
                                     this.horizon.obstacles[0].xPos - this.tRex.xPos,
                                     this.horizon.obstacles[0].typeConfig.width,
@@ -545,6 +550,13 @@ Runner.prototype = {
             sourceNode.connect(this.audioContext.destination);
             sourceNode.start(0);
         }
+    },
+    jump: function() {
+        if (!this.tRex.jumping && !this.crashed) {
+            this.tRex.startJump();
+
+            this.tRex.endJump();
+        }
     }
 };
 // Updates the canvas size taking into account the backing store pixel ratio and the device pixel ratio.
@@ -593,4 +605,8 @@ function decodeBase64ToArrayBuffer(base64String) {
 }
 function getTimeStamp() {
     return performance.now();
+}
+
+function makeJump() {
+    runnerObj.jump()
 }
