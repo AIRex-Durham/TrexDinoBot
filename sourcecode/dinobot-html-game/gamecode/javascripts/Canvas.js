@@ -294,28 +294,6 @@ Runner.prototype = {
                 if (this.currentSpeed < this.config.MAX_SPEED) {
                     this.currentSpeed += this.config.ACCELERATION;
                 }
-                if(this.horizon.obstacles[0] != undefined) {
-                    if(!runnerObj.isHumanPlayer) {
-                        //Send analytics to train model
-                        predictPlay(
-                            this.horizon.obstacles[0].xPos - this.tRex.xPos,
-                            this.horizon.obstacles[0].typeConfig.width,
-                            this.horizon.obstacles[0].typeConfig.height,
-                            this.currentSpeed,
-                        )
-                    } else {
-                        //Send analytics to train model
-                        if(!this.tRex.jumping){
-                            sendPlayStateToWebsocket(
-                                this.horizon.obstacles[0].xPos - this.tRex.xPos,
-                                this.horizon.obstacles[0].typeConfig.width,
-                                this.horizon.obstacles[0].typeConfig.height,
-                                this.currentSpeed,
-                                this.tRex.jumping
-                            )
-                        }
-                    }
-                }
             } else {
                 this.gameOver();
                 sendEndOfPlayStateToWebsocket();
@@ -337,6 +315,42 @@ Runner.prototype = {
         if (!this.crashed) {
             this.tRex.update(deltaTime);
             this.raq();
+        }
+
+
+        if (this.activated) {
+
+            // Check for collisions.
+            var collision =
+                hasObstacles &&
+                checkForCollision(this.horizon.obstacles[0], this.tRex);
+
+            if (!collision) {
+                if(this.horizon.obstacles[0] != undefined) {
+                    if(!runnerObj.isHumanPlayer && !this.tRex.jumping) {
+                        //Send analytics to train model
+                        predictPlayViaImage()
+//                        predictPlay(
+//                            this.horizon.obstacles[0].xPos - this.tRex.xPos,
+//                            this.horizon.obstacles[0].typeConfig.width,
+//                            this.horizon.obstacles[0].typeConfig.height,
+//                            this.currentSpeed,
+//                        )
+                    } else {
+                        //Send analytics to train model
+                        if(!this.tRex.jumping){
+                            sendPlayStateImage(false)
+                            sendPlayStateToWebsocket(
+                                this.horizon.obstacles[0].xPos - this.tRex.xPos,
+                                this.horizon.obstacles[0].typeConfig.width,
+                                this.horizon.obstacles[0].typeConfig.height,
+                                this.currentSpeed,
+                                this.tRex.jumping
+                            )
+                        }
+                    }
+                }
+            }
         }
     },
     handleEvent: function (e) {
@@ -411,12 +425,13 @@ Runner.prototype = {
                     this.loadSounds();
                     this.activated = true;
                 }
-                if (!this.tRex.jumping) {
+                if (this.activated && !this.tRex.jumping) {
                     this.playSound(this.soundFx.BUTTON_PRESS);
                     this.tRex.startJump();
                     if(this.horizon.obstacles[0] != undefined) {
                         if(runnerObj.isHumanPlayer) {
                             //Send analytics to train model
+                            sendPlayStateImage(true)
                             sendPlayStateToWebsocket(
                                     this.horizon.obstacles[0].xPos - this.tRex.xPos,
                                     this.horizon.obstacles[0].typeConfig.width,
@@ -552,10 +567,8 @@ Runner.prototype = {
         }
     },
     jump: function() {
-        if (!this.tRex.jumping && !this.crashed) {
+        if (!this.crashed) {
             this.tRex.startJump();
-
-            this.tRex.endJump();
         }
     }
 };

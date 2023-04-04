@@ -1,14 +1,17 @@
 let websocketObj;
 
 function connectWebsocket() {
+    make_game_invisible()
     websocketObj = new WebSocket("ws://localhost:8765");
     websocketObj.onopen = (event) => {
-        var url = runnerObj.canvas.toDataURL();
 
+
+        make_game_visible()
         // webSocket.send(JSON.stringify({ "data": url, "status": "play" }));
     };
     websocketObj.onmessage = (event) => {
-        if(event != undefined && event.data != undefined && JSON.parse(event.data).labels == "Jump") {
+        console.log(event)
+        if(JSON.parse(event.data).labels == "Jump") {
             makeJump()
         }
     };
@@ -21,11 +24,31 @@ function sendPlayStateToWebsocket(distance_to_obstacle, obstracle_width, obstacl
             "obstacle_width": obstracle_width,
             "obstacle_height": obstacle_height,
             "game_speed": game_speed,
-            "action": action,
-            'state': null
+            "action": action
         },
         "state": "playing"
     }))
+}
+
+function sendPlayStateImage(action) {
+    var base64Image = runnerObj.canvas.toDataURL().split(',')[1];
+    websocketObj.send(JSON.stringify({
+            "data": {
+                "image": base64Image,
+                "action": action
+            },
+            "state": "playing_base64image"
+        }))
+}
+
+function predictPlayViaImage() {
+    var base64Image = runnerObj.canvas.toDataURL().split(',')[1];
+    websocketObj.send(JSON.stringify({
+            "data": {
+                "image": base64Image
+            },
+            "state": "predict_base64Image"
+        }))
 }
 
 function sendEndOfPlayStateToWebsocket() {
@@ -40,9 +63,16 @@ function predictPlay(distance_to_obstacle, obstracle_width, obstacle_height, gam
                 "distance_to_obstacle": distance_to_obstacle,
                 "obstacle_width": obstracle_width,
                 "obstacle_height": obstacle_height,
-                "game_speed": game_speed,
-                'state': null
+                "game_speed": game_speed
             },
             "state": "predict"
         }))
+}
+
+function make_game_visible() {
+    document.getElementById("websocket_state").style.display = "none";
+}
+
+function make_game_invisible() {
+    document.getElementById("websocket_state").style.display = "flex";
 }

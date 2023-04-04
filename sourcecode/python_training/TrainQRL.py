@@ -1,5 +1,6 @@
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 from imblearn.over_sampling import SMOTE
 import pickle
@@ -12,38 +13,11 @@ class TrainQRL:
 
     def __init__(self):
         self.websocket = None
-        # Define hyperparameters
-        self.learning_rate = 0.8
-        self.discount_factor = 0.95
-        self.exploration_rate = 0.1
 
-        # Define Q-table with states as rows and actions as columns
-        self.num_states = 4
-        self.num_actions = 2
         self.data_space = []
         self.action_space = []
         self.feedback_space = []
         self.csv_data = []
-        self.Q_table = np.zeros((4, 1))
-
-    def get_state(self, state):
-        if state == "playing":
-            return 0
-        elif state == "crashed":
-            return 1
-        else:
-            raise ValueError("Invalid state: {}".format(state))
-
-    # Define the reward function
-    def get_reward(self, action, play_state):
-        if action == 0 and play_state == "crashed":
-            return -10  # agent collided with obstacle
-        elif action == 1 and play_state == "crashed":
-            return -1  # agent failed to avoid obstacle
-        elif action == 1 and play_state == "playing":
-            return 10  # agent collected a point
-        else:
-            return 0  # no reward
 
     def dump_data(self):
         # Check if CSV file exists
@@ -84,8 +58,6 @@ class TrainQRL:
                 self.data_space.pop()
             if len(self.action_space) > 0:
                 self.action_space.pop()
-            if len(self.feedback_space) > 0:
-                self.feedback_space.pop()
             if len(self.csv_data) > 0:
                 self.csv_data.pop()
 
@@ -94,7 +66,6 @@ class TrainQRL:
             await self.train_model(self.load_dumped_data())
             if self.websocket is None:
                 print("Websocket object is null")
-            await self.websocket.send_message({"msg": "Training Complete"})
         elif message_json['state'] == 'playing':
             # Step 2: Define the state space and action space
             # Define the same state and action space as in the RL agent approach
@@ -110,43 +81,49 @@ class TrainQRL:
             self.data_space.append([int(message_json['data']["distance_to_obstacle"]),
                                     int(message_json['data']["obstacle_width"]),
                                     int(message_json['data']["obstacle_height"]),
-                                    float(message_json['data']["game_speed"])])
+                                    "{:.2f}".format(float(message_json['data']["game_speed"]))])
             self.action_space.append(message_json['data']["action"])
-            self.feedback_space.append(message_json['data']["state"])
 
             self.csv_data.append({
                 "distance_to_obstacle": int(message_json['data']["distance_to_obstacle"]),
                 "obstacle_width": int(message_json['data']["obstacle_width"]),
                 "obstacle_height": int(message_json['data']["obstacle_height"]),
-                "game_speed": float(message_json['data']["game_speed"]),
+                "game_speed": "{:.2f}".format(float(message_json['data']["game_speed"])),
                 "action": message_json['data']["action"]
             })
 
             await self.websocket.send_message({"msg": "Data stashed for training"})
-
-    def get_state_tuple(self, index):
-        return hash((
-            self.data_space[index]["distance_to_obstacle"],
-            self.data_space[index]["obstacle_width"],
-            self.data_space[index]["obstacle_height"],
-            self.data_space[index]["game_speed"]
-        ))
 
     async def train_model(self, data):
         # Separate features (X) and labels (y)
         X = data.iloc[:, :-1]  # first five columns contain features
         y = data.iloc[:, -1]  # last column contains labels
 
+        # split the data into training and testing sets
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-        # Apply SMOTE to oversample the minority class in the training set
+        # apply SMOTE to oversample the minority class in the training set
         sm = SMOTE(random_state=42)
         X_train_res, y_train_res = sm.fit_resample(X_train, y_train)
-        print(y_train_res.value_counts())
 
-        # Train a machine learning model on the oversampled training set
+        # scale the features
+        scaler = StandardScaler()
+        X_train_res = scaler.fit_transform(X_train_res)
+        X_test = scaler.transform(X_test)
+
+        # one-hot encode the actions
+        lb = LabelBinarizer()
+        y_train_res = lb.fit_transform(y_train_res)
+        y_test = lb.transform(y_test)
+
+        # train a random forest classifier on the oversampled training set
         clf = RandomForestClassifier(random_state=42)
         clf.fit(X_train_res, y_train_res)
+
+        # evaluate the model
+        y_pred = clf.predict(X_test)
+        accuracy = accuracy_score(y_test, y_pred)
+        print(f"Accuracy: {accuracy}")
 
         with open('model.pkl', 'wb') as file:
             pickle.dump(clf, file)

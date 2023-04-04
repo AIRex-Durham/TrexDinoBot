@@ -23,7 +23,7 @@ class Predict:
             "distance_to_obstacle": int(message_json['data']["distance_to_obstacle"]),
             "obstacle_width": int(message_json['data']["obstacle_width"]),
             "obstacle_height": int(message_json['data']["obstacle_height"]),
-            "game_speed": float(message_json['data']["game_speed"]),
+            "game_speed": "{:.2f}".format(float(message_json['data']["game_speed"])),
             "prediction": predicted,
         })
 
@@ -54,7 +54,7 @@ class Predict:
         prediction = clf.predict([[int(message_json['data']["distance_to_obstacle"]),
                                    int(message_json['data']["obstacle_width"]),
                                    int(message_json['data']["obstacle_height"]),
-                                   float(message_json['data']["game_speed"])]])
+                                   "{:.2f}".format(float(message_json['data']["game_speed"]))]])
 
         print("prediction: " + str(prediction[0]))
 
@@ -65,3 +65,5 @@ class Predict:
             await self.websocket.send_message({"labels": "Jump"})
         else:
             await self.websocket.send_message({"labels": "Do_Nothing"})
+
+        return prediction[0]
