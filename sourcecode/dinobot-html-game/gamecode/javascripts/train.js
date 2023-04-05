@@ -30,25 +30,130 @@ function sendPlayStateToWebsocket(distance_to_obstacle, obstracle_width, obstacl
     }))
 }
 
-function sendPlayStateImage(action) {
-    var base64Image = runnerObj.canvas.toDataURL().split(',')[1];
-    websocketObj.send(JSON.stringify({
-            "data": {
-                "image": base64Image,
-                "action": action
-            },
-            "state": "playing_base64image"
-        }))
+
+function throttle(func, delay) {
+  let timeoutId;
+  return function() {
+    const context = this;
+    const args = arguments;
+    if (!timeoutId) {
+      timeoutId = setTimeout(function() {
+        func.apply(context, args);
+        timeoutId = null;
+      }, delay);
+    }
+  }
 }
 
+const sendPlayStateImageThrottledFunction = throttle(function(action) {
+  sendPlayStateImage(action);
+}, 100);
+
+function sendPlayStateImage(action) {
+
+  // get the 2D rendering context
+  const ctx = runnerObj.canvas.getContext("2d");
+
+  // define the area to capture
+  const x = 30;
+  const y = 0;
+  const width = 350;
+  const height = 350;
+
+  // extract the pixel data from the canvas
+  const imageData = ctx.getImageData(x, y, width, height);
+
+  // create a new canvas to hold the extracted pixels
+  const newCanvas = document.createElement("canvas");
+  newCanvas.width = width;
+  newCanvas.height = height;
+
+  // draw the extracted pixels onto the new canvas
+  const newCtx = newCanvas.getContext("2d");
+  newCtx.putImageData(imageData, 0, 0);
+
+  // convert image to black and white
+  for (let i = 0; i < imageData.data.length; i += 4) {
+    const red = imageData.data[i];
+    const green = imageData.data[i + 1];
+    const blue = imageData.data[i + 2];
+    const average = (red + green + blue) / 3;
+    imageData.data[i] = average;
+    imageData.data[i + 1] = average;
+    imageData.data[i + 2] = average;
+  }
+
+  // compress the image
+  newCanvas.toBlob(function(blob) {
+    const reader = new FileReader();
+    reader.readAsDataURL(blob);
+    reader.onloadend = function() {
+      const base64data = reader.result.split(',')[1];
+      // send base64data to server
+      websocketObj.send(JSON.stringify({
+        "data": {
+          "image": base64data,
+          "action": action
+        },
+        "state": "playing_base64image"
+      }));
+    }
+  }, 'image/jpeg', 0.3);
+}
+
+
+const predictPlayViaImageThrottledFunction = throttle(predictPlayViaImage, 100);
+
 function predictPlayViaImage() {
-    var base64Image = runnerObj.canvas.toDataURL().split(',')[1];
+    // get the 2D rendering context
+  const ctx = runnerObj.canvas.getContext("2d");
+
+  // define the area to capture
+  const x = 50;
+  const y = 0;
+  const width = 350;
+  const height = 350;
+
+  // extract the pixel data from the canvas
+  const imageData = ctx.getImageData(x, y, width, height);
+
+  // create a new canvas to hold the extracted pixels
+  const newCanvas = document.createElement("canvas");
+  newCanvas.width = width;
+  newCanvas.height = height;
+
+  // draw the extracted pixels onto the new canvas
+  const newCtx = newCanvas.getContext("2d");
+  newCtx.putImageData(imageData, 0, 0);
+
+  // convert image to black and white
+  for (let i = 0; i < imageData.data.length; i += 4) {
+    const red = imageData.data[i];
+    const green = imageData.data[i + 1];
+    const blue = imageData.data[i + 2];
+    const average = (red + green + blue) / 3;
+    imageData.data[i] = average;
+    imageData.data[i + 1] = average;
+    imageData.data[i + 2] = average;
+  }
+
+  // compress the image
+  newCanvas.toBlob(function(blob) {
+    const reader = new FileReader();
+    reader.readAsDataURL(blob);
+    reader.onloadend = function() {
+      const base64data = reader.result.split(',')[1];
+      // send base64data to server
+
     websocketObj.send(JSON.stringify({
             "data": {
-                "image": base64Image
+                "image": base64data,
             },
             "state": "predict_base64Image"
         }))
+    }
+  }, 'image/jpeg', 0.3);
+
 }
 
 function sendEndOfPlayStateToWebsocket() {
@@ -75,4 +180,34 @@ function make_game_visible() {
 
 function make_game_invisible() {
     document.getElementById("websocket_state").style.display = "flex";
+}
+
+function getClippedRegion(image, x, y, width, height) {
+    var img = new Image();
+    img.src = image
+    var canvas = document.createElement('canvas'),
+        ctx = canvas.getContext('2d');
+
+    canvas.width = width;
+    canvas.height = height;
+
+    //                   source region         dest. region
+    ctx.drawImage(img, x, y, width, height,  0, 0, width, height);
+
+    return canvas;
+}
+
+
+
+function sendPlayStateToWebsocketForAIPlayer(distance_to_obstacle, obstracle_width, obstacle_height, game_speed, action) {
+    if(distance_to_obstacle < 100) {
+       makeJump()
+    }
+}
+
+
+function predictPlayForAIPlayer(distance_to_obstacle, obstracle_width, obstacle_height, game_speed) {
+   if(distance_to_obstacle < 100) {
+       makeJump()
+    }
 }

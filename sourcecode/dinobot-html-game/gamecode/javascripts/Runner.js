@@ -3,6 +3,7 @@ function hideClass(name) {
 }
 var DEFAULT_WIDTH = 600, FPS = 60;
 var IS_HIDPI = false, IS_IOS = false, IS_MOBILE = false, IS_TOUCH_ENABLED = false;
+var HUMAN = 0, AI = 1, RL = 2;
 function Runner(outerContainerId) {
     Runner.instance_ = this;
     var outerContainerEl = document.querySelector(outerContainerId);
@@ -34,7 +35,7 @@ function Runner(outerContainerId) {
     this.audioContext = null;
     this.images = {};
     this.imagesLoaded = 0;
-    this.isHumanPlayer = true;
+    this.player = HUMAN;
     loadImages(this);
 };
 Runner.config = {

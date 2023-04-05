@@ -327,9 +327,18 @@ Runner.prototype = {
 
             if (!collision) {
                 if(this.horizon.obstacles[0] != undefined) {
-                    if(!runnerObj.isHumanPlayer && !this.tRex.jumping) {
+                    if(!runnerObj.player == AI && !this.tRex.jumping) {
                         //Send analytics to train model
-                        predictPlayViaImage()
+//                        predictPlayViaImageThrottledFunction()
+                        predictPlayForAIPlayer(
+                            this.horizon.obstacles[0].xPos - this.tRex.xPos,
+                            this.horizon.obstacles[0].typeConfig.width,
+                            this.horizon.obstacles[0].typeConfig.height,
+                            this.currentSpeed,
+                        )
+                    } else if(!runnerObj.player == RL && !this.tRex.jumping) {
+                        //Send analytics to train model
+                        predictPlayViaImageThrottledFunction()
 //                        predictPlay(
 //                            this.horizon.obstacles[0].xPos - this.tRex.xPos,
 //                            this.horizon.obstacles[0].typeConfig.width,
@@ -339,7 +348,7 @@ Runner.prototype = {
                     } else {
                         //Send analytics to train model
                         if(!this.tRex.jumping){
-                            sendPlayStateImage(false)
+//                            sendPlayStateImage(false)
                             sendPlayStateToWebsocket(
                                 this.horizon.obstacles[0].xPos - this.tRex.xPos,
                                 this.horizon.obstacles[0].typeConfig.width,
@@ -429,9 +438,9 @@ Runner.prototype = {
                     this.playSound(this.soundFx.BUTTON_PRESS);
                     this.tRex.startJump();
                     if(this.horizon.obstacles[0] != undefined) {
-                        if(runnerObj.isHumanPlayer) {
+                        if(runnerObj.player == HUMAN) {
                             //Send analytics to train model
-                            sendPlayStateImage(true)
+//                            sendPlayStateImageThrottledFunction(true)
                             sendPlayStateToWebsocket(
                                     this.horizon.obstacles[0].xPos - this.tRex.xPos,
                                     this.horizon.obstacles[0].typeConfig.width,

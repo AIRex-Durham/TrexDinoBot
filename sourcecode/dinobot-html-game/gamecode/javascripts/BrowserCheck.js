@@ -14,6 +14,13 @@ window.onload = function () {
 
 function onPlayerTypeChange(myRadio) {
     currentValue = myRadio.value;
-    runnerObj.isHumanPlayer = currentValue == "humanplayer"
-    console.log("Plyaer:" + currentValue)
+    if(currentValue == "humanplayer") {
+        runnerObj.player = HUMAN
+    }
+    else if(currentValue == "aiplayer") {
+        runnerObj.player = AI
+    }
+    else if(currentValue == "rlplayer") {
+        runnerObj.player = RL
+    }
 }
