@@ -327,7 +327,7 @@ Runner.prototype = {
 
             if (!collision) {
                 if(this.horizon.obstacles[0] != undefined) {
-                    if(!runnerObj.player == AI && !this.tRex.jumping) {
+                    if(runnerObj.player == AI && !this.tRex.jumping) {
                         //Send analytics to train model
 //                        predictPlayViaImageThrottledFunction()
                         predictPlayForAIPlayer(
@@ -336,7 +336,7 @@ Runner.prototype = {
                             this.horizon.obstacles[0].typeConfig.height,
                             this.currentSpeed,
                         )
-                    } else if(!runnerObj.player == RL && !this.tRex.jumping) {
+                    } else if(runnerObj.player == RL && !this.tRex.jumping) {
                         //Send analytics to train model
                         predictPlayViaImageThrottledFunction()
 //                        predictPlay(
