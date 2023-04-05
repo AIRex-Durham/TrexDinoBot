@@ -10,7 +10,7 @@ function connectWebsocket() {
         // webSocket.send(JSON.stringify({ "data": url, "status": "play" }));
     };
     websocketObj.onmessage = (event) => {
-        console.log(event)
+//        console.log(event)
         if(JSON.parse(event.data).labels == "Jump") {
             makeJump()
         }
@@ -207,7 +207,21 @@ function sendPlayStateToWebsocketForAIPlayer(distance_to_obstacle, obstracle_wid
 
 
 function predictPlayForAIPlayer(distance_to_obstacle, obstracle_width, obstacle_height, game_speed) {
-   if(distance_to_obstacle < 100) {
-       makeJump()
+    if(game_speed < 7) {
+        var num = 100 + Math.floor(Math.random() * 30);
+        if(distance_to_obstacle < num) {
+           makeJump()
+        }
+    } else if(game_speed < 8) {
+        var num = 110 + Math.floor(Math.random() * 20);
+        if(distance_to_obstacle < 100) {
+           makeJump()
+        }
+    } else if (game_speed , 9) {
+        var num = 130 + Math.floor(Math.random() * 10);
+         if(distance_to_obstacle < num) {
+           makeJump()
+        }
     }
+
 }

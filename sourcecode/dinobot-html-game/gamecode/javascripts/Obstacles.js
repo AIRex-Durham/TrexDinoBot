@@ -341,7 +341,7 @@ function loadObstaclesForChoice(runner) {
             }
 
             searchCanvasIds.push(obj)
-            choices += '<div style="width: 100px; display: grid; grid-row-gap:10px;justify-content: center;align-items: center;align-content: center;"><input type="checkbox" id=' + obj.inputId + ' value="' + i + '_obstacle" checked="true"></input> <canvas  id=' + obj.canvasId + ' class="obstacle_choices" tag="' + i + '_' + size + ' style="width:100px;height:35px;"></canvas></div>'
+            choices += '<div style="width: 70px; margin-left: 10px; display: grid; grid-row-gap:10px;justify-content: center;align-items: center;align-content: center;"><input type="checkbox" id=' + obj.inputId + ' value="' + i + '_obstacle" checked="true"></input> <canvas  id=' + obj.canvasId + ' class="obstacle_choices" tag="' + i + '_' + size + ' style="width:'+obstacle.width * (size)+'px;height:20px;"></canvas></div>'
         }
     }
 

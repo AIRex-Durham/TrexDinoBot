@@ -35,7 +35,7 @@ function Runner(outerContainerId) {
     this.audioContext = null;
     this.images = {};
     this.imagesLoaded = 0;
-    this.player = HUMAN;
+    this.player = AI;
     loadImages(this);
 };
 Runner.config = {
