@@ -1,43 +1,52 @@
 let websocketObj;
 
 function connectWebsocket() {
-    make_game_invisible()
-    websocketObj = new WebSocket("ws://localhost:8765");
+  make_game_invisible()
+  // websocketObj = new WebSocket("ws://localhost:8765");
+  if (websocketObj != undefined) {
     websocketObj.onopen = (event) => {
 
 
-        make_game_visible()
-        // webSocket.send(JSON.stringify({ "data": url, "status": "play" }));
+      make_game_visible()
+      // webSocket.send(JSON.stringify({ "data": url, "status": "play" }));
     };
     websocketObj.onmessage = (event) => {
-//        console.log(event)
-        if(JSON.parse(event.data).labels == "Jump") {
-            makeJump()
-        }
+      //        console.log(event)
+      if (JSON.parse(event.data).labels == "Jump") {
+        //            makeJump()
+      }
     };
+
+    websocketObj.onerror = (event) => {
+      make_game_visible();
+    }
+  } else {
+    make_game_visible();
+  }
+
 }
 
 function sendPlayStateToWebsocket(distance_to_obstacle, obstracle_width, obstacle_height, game_speed, action) {
-    websocketObj.send(JSON.stringify({
-        "data": {
-            "distance_to_obstacle": distance_to_obstacle,
-            "obstacle_width": obstracle_width,
-            "obstacle_height": obstacle_height,
-            "game_speed": game_speed,
-            "action": action
-        },
-        "state": "playing"
-    }))
+  websocketObj?.send(JSON.stringify({
+    "data": {
+      "distance_to_obstacle": distance_to_obstacle,
+      "obstacle_width": obstracle_width,
+      "obstacle_height": obstacle_height,
+      "game_speed": game_speed,
+      "action": action
+    },
+    "state": "playing"
+  }))
 }
 
 
 function throttle(func, delay) {
   let timeoutId;
-  return function() {
+  return function () {
     const context = this;
     const args = arguments;
     if (!timeoutId) {
-      timeoutId = setTimeout(function() {
+      timeoutId = setTimeout(function () {
         func.apply(context, args);
         timeoutId = null;
       }, delay);
@@ -45,7 +54,7 @@ function throttle(func, delay) {
   }
 }
 
-const sendPlayStateImageThrottledFunction = throttle(function(action) {
+const sendPlayStateImageThrottledFunction = throttle(function (action) {
   sendPlayStateImage(action);
 }, 100);
 
@@ -84,10 +93,10 @@ function sendPlayStateImage(action) {
   }
 
   // compress the image
-  newCanvas.toBlob(function(blob) {
+  newCanvas.toBlob(function (blob) {
     const reader = new FileReader();
     reader.readAsDataURL(blob);
-    reader.onloadend = function() {
+    reader.onloadend = function () {
       const base64data = reader.result.split(',')[1];
       // send base64data to server
       websocketObj.send(JSON.stringify({
@@ -105,7 +114,7 @@ function sendPlayStateImage(action) {
 const predictPlayViaImageThrottledFunction = throttle(predictPlayViaImage, 100);
 
 function predictPlayViaImage() {
-    // get the 2D rendering context
+  // get the 2D rendering context
   const ctx = runnerObj.canvas.getContext("2d");
 
   // define the area to capture
@@ -138,90 +147,91 @@ function predictPlayViaImage() {
   }
 
   // compress the image
-  newCanvas.toBlob(function(blob) {
+  newCanvas.toBlob(function (blob) {
     const reader = new FileReader();
     reader.readAsDataURL(blob);
-    reader.onloadend = function() {
+    reader.onloadend = function () {
       const base64data = reader.result.split(',')[1];
       // send base64data to server
 
-    websocketObj.send(JSON.stringify({
-            "data": {
-                "image": base64data,
-            },
-            "state": "predict_base64Image"
-        }))
+      websocketObj?.send(JSON.stringify({
+        "data": {
+          "image": base64data,
+        },
+        "state": "predict_base64Image"
+      }))
     }
   }, 'image/jpeg', 0.3);
 
 }
 
 function sendEndOfPlayStateToWebsocket() {
-    websocketObj.send(JSON.stringify({
-        "state": "crashed"
-    }))
+  websocketObj?.send(JSON.stringify({
+    "state": "crashed"
+  }))
+  stopSpeechRecognition()
 }
 
 function predictPlay(distance_to_obstacle, obstracle_width, obstacle_height, game_speed) {
-    websocketObj.send(JSON.stringify({
-            "data": {
-                "distance_to_obstacle": distance_to_obstacle,
-                "obstacle_width": obstracle_width,
-                "obstacle_height": obstacle_height,
-                "game_speed": game_speed
-            },
-            "state": "predict"
-        }))
+  websocketObj?.send(JSON.stringify({
+    "data": {
+      "distance_to_obstacle": distance_to_obstacle,
+      "obstacle_width": obstracle_width,
+      "obstacle_height": obstacle_height,
+      "game_speed": game_speed
+    },
+    "state": "predict"
+  }))
 }
 
 function make_game_visible() {
-    document.getElementById("websocket_state").style.display = "none";
+  document.getElementById("websocket_state").style.display = "none";
 }
 
 function make_game_invisible() {
-    document.getElementById("websocket_state").style.display = "flex";
+  document.getElementById("websocket_state").style.display = "flex";
 }
 
 function getClippedRegion(image, x, y, width, height) {
-    var img = new Image();
-    img.src = image
-    var canvas = document.createElement('canvas'),
-        ctx = canvas.getContext('2d');
+  var img = new Image();
+  img.src = image
+  var canvas = document.createElement('canvas'),
+    ctx = canvas.getContext('2d');
 
-    canvas.width = width;
-    canvas.height = height;
+  canvas.width = width;
+  canvas.height = height;
 
-    //                   source region         dest. region
-    ctx.drawImage(img, x, y, width, height,  0, 0, width, height);
+  //                   source region         dest. region
+  ctx.drawImage(img, x, y, width, height, 0, 0, width, height);
 
-    return canvas;
+  return canvas;
 }
 
 
 
 function sendPlayStateToWebsocketForAIPlayer(distance_to_obstacle, obstracle_width, obstacle_height, game_speed, action) {
-    if(distance_to_obstacle < 100) {
-       makeJump()
-    }
+  if (distance_to_obstacle < 100) {
+    makeJump()
+  }
 }
 
 
 function predictPlayForAIPlayer(distance_to_obstacle, obstracle_width, obstacle_height, game_speed) {
-    if(game_speed < 7) {
-        var num = 100 + Math.floor(Math.random() * 30);
-        if(distance_to_obstacle < num) {
-           makeJump()
-        }
-    } else if(game_speed < 8) {
-        var num = 110 + Math.floor(Math.random() * 20);
-        if(distance_to_obstacle < 100) {
-           makeJump()
-        }
-    } else if (game_speed , 9) {
-        var num = 130 + Math.floor(Math.random() * 10);
-         if(distance_to_obstacle < num) {
-           makeJump()
-        }
+  if (game_speed < 7) {
+    var num = 100 + Math.floor(Math.random() * 30);
+    if (distance_to_obstacle < num) {
+      makeJump()
     }
+  } else if (game_speed < 8) {
+    var num = 110 + Math.floor(Math.random() * 20);
+    if (distance_to_obstacle < 100) {
+      makeJump()
+    }
+  } else if (game_speed, 9) {
+    var num = 130 + Math.floor(Math.random() * 10);
+    if (distance_to_obstacle < num) {
+      makeJump()
+    }
+  }
 
 }

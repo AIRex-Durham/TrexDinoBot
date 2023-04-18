@@ -16,6 +16,7 @@ function Trex(canvas, image) {
     // Current status.
     this.status = Trex.status.WAITING;
     this.jumping = false;
+    this.jumpDoneCallback = undefined;
     this.jumpVelocity = 0;
     this.reachedMinHeight = false;
     this.speedDrop = false;
@@ -214,5 +215,6 @@ Trex.prototype = {
         this.midair = false;
         this.speedDrop = false;
         this.jumpCount = 0;
+        this.jumpDoneCallback();
     }
 };

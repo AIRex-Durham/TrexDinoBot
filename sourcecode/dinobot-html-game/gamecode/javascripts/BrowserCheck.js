@@ -2,12 +2,11 @@ let runnerObj;
 
 window.onload = function () {
     if (navigator.userAgent.toLowerCase().indexOf('chrome') > -1) {
-        
+
         runnerObj = new Runner('.main-container');
         loadObstaclesForChoice(runnerObj);
 
-        connectWebsocket(runnerObj);
-        startSpeechRecognition();
+        connectWebsocket();
 
         document.getElementById("main-frame-notchrome").style.display = "none";
     } else {
@@ -17,13 +16,13 @@ window.onload = function () {
 
 function onPlayerTypeChange(myRadio) {
     currentValue = myRadio.value;
-    if(currentValue == "humanplayer") {
+    if (currentValue == "humanplayer") {
         runnerObj.player = HUMAN
     }
-    else if(currentValue == "aiplayer") {
+    else if (currentValue == "aiplayer") {
         runnerObj.player = AI
     }
-    else if(currentValue == "rlplayer") {
+    else if (currentValue == "rlplayer") {
         runnerObj.player = RL
     }
 }

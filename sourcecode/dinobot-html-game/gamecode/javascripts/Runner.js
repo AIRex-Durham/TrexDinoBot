@@ -12,6 +12,7 @@ function Runner(outerContainerId) {
         throw Error("outer container id not found")
     this.containerEl = null;
     this.config = Runner.config;
+    this.trexbot_jumping = false;
     this.dimensions = Runner.defaultDimensions;
     this.canvas = null;
     this.canvasCtx = null;
@@ -35,7 +36,7 @@ function Runner(outerContainerId) {
     this.audioContext = null;
     this.images = {};
     this.imagesLoaded = 0;
-    this.player = AI;
+    this.player = HUMAN;
     loadImages(this);
 };
 Runner.config = {

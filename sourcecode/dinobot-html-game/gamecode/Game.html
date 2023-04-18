@@ -58,9 +58,15 @@
         </div>
 
     </div>
-    
-    <script type="text/javascript" src="javascripts/train.js"></script>
+
+    <!-- Load TensorFlow.js from CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.8.0/dist/tf.min.js"></script>
+    <!-- Load Phaser from CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.min.js"></script>
     <script src="https://unpkg.com/ml5@0.7.2/dist/ml5.min.js"></script>
+
+
+    <script type="text/javascript" src="javascripts/Train.js"></script>
     <script type="text/javascript" src="javascripts/SpeechRecognition.js"></script>
     <script type="text/javascript" src="javascripts/BrowserCheck.js"></script>
     <script type="text/javascript" src="javascripts/Obstacles.js"></script>
@@ -70,19 +76,27 @@
     <script type="text/javascript" src="javascripts/Trex.js"></script>
     <script type="text/javascript" src="javascripts/Runner.js"></script>
     <script type="text/javascript" src="javascripts/Canvas.js"></script>
-    <script type="text/javascript" src="javascripts/Canvas.js"></script>
-    
+    <script type="text/javascript" src="javascripts/ReinforcementLearning.js"></script>
+
+
+
 
     <div id="obstacle_choices" style="display: inline-flex; justify-content: center; align-items: center; width: 100%;">
     </div>
     <div style="display: inline-flex; justify-content: center; align-items: center; width: 100%; margin-top: 50px;">
-        <input type="radio" name="player" value="humanplayer"  onclick="onPlayerTypeChange(this);">
+        <input type="radio" name="player" value="humanplayer" checked onclick="onPlayerTypeChange(this);">
           <label for="humanplayer">Human Player</label><br>
-          <input type="radio" name="player" value="aiplayer" checked onclick="onPlayerTypeChange(this);">
+          <input type="radio" name="player" value="aiplayer" onclick="onPlayerTypeChange(this);">
           <label for="aiplayer">AI Player</label><br>
-          <input type="radio" name="player" value="rlplayer"  onclick="onPlayerTypeChange(this);">
+          <input type="radio" name="player" value="rlplayer" onclick="onPlayerTypeChange(this);">
           <label for="rlplayer">RL Player</label><br>
     </div>
+
+    <div style="display: inline-flex; justify-content: center; align-items: center; width: 100%; margin-top: 50px;">
+        <input type="checkbox" id="speechrecog" onclick="onSpeechRecognisationChange(this);">
+          <label for="speechrecog">Speech recognization</label><br>
+    </div>
+
 
     <div id="websocket_state">Loading...</div>
 </body>
