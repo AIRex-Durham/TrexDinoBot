@@ -29,6 +29,9 @@ function init(runner) {
     );
     // Draw t-rex
     runner.tRex = new Trex(runner.canvas, runner.images.TREX);
+    runner.tRex.jumpDoneCallback = () => {
+        // console.log("jumped")
+    }
     runner.outerContainerEl.appendChild(runner.containerEl);
     if (IS_MOBILE) {
         this.createTouchController();
@@ -296,6 +299,7 @@ Runner.prototype = {
                 }
             } else {
                 this.gameOver();
+                sendEndOfPlayStateToWebsocket();
             }
             if (
                 this.distanceMeter.getActualDistance(this.distanceRan) >
@@ -314,6 +318,56 @@ Runner.prototype = {
         if (!this.crashed) {
             this.tRex.update(deltaTime);
             this.raq();
+        }
+
+
+        if (this.activated) {
+
+            // Check for collisions.
+            var collision =
+                hasObstacles &&
+                checkForCollision(this.horizon.obstacles[0], this.tRex);
+
+            if (!collision) {
+                if (this.horizon.obstacles[0] != undefined) {
+                    if (runnerObj.player == AI && !this.tRex.jumping) {
+                        //Send analytics to train model
+                        //                        predictPlayViaImageThrottledFunction()
+                        predictPlayForAIPlayer(
+                            this.horizon.obstacles[0].xPos - this.tRex.xPos,
+                            this.horizon.obstacles[0].typeConfig.width,
+                            this.horizon.obstacles[0].typeConfig.height,
+                            this.currentSpeed,
+                        )
+                    } else if (runnerObj.player == RL && !this.tRex.jumping) {
+                        //Send analytics to train model
+                        predictPlayViaImageThrottledFunction()
+                        //                        predictPlay(
+                        //                            this.horizon.obstacles[0].xPos - this.tRex.xPos,
+                        //                            this.horizon.obstacles[0].typeConfig.width,
+                        //                            this.horizon.obstacles[0].typeConfig.height,
+                        //                            this.currentSpeed,
+                        //                        )
+                    } else {
+                        //Send analytics to train model
+                        if (!this.tRex.jumping) {
+                            //                            sendPlayStateImage(false)
+                            sendPlayStateToWebsocket(
+                                this.horizon.obstacles[0].xPos - this.tRex.xPos,
+                                this.horizon.obstacles[0].typeConfig.width,
+                                this.horizon.obstacles[0].typeConfig.height,
+                                this.currentSpeed,
+                                this.tRex.jumping
+                            )
+                        }
+                    }
+                }
+                if (!this.tRex.jumping && runnerObj.rewardPromise != undefined) {
+                    runnerObj.rewardPromise(1)
+                }
+            } else if (runner.rewardPromise != undefined) {
+                runnerObj.rewardPromise(-1)
+            }
         }
     },
     handleEvent: function (e) {
@@ -388,9 +442,22 @@ Runner.prototype = {
                     this.loadSounds();
                     this.activated = true;
                 }
-                if (!this.tRex.jumping) {
+                if (this.activated && !this.tRex.jumping) {
                     this.playSound(this.soundFx.BUTTON_PRESS);
                     this.tRex.startJump();
+                    if (this.horizon.obstacles[0] != undefined) {
+                        if (runnerObj.player == HUMAN) {
+                            //Send analytics to train model
+                            //                            sendPlayStateImageThrottledFunction(true)
+                            sendPlayStateToWebsocket(
+                                this.horizon.obstacles[0].xPos - this.tRex.xPos,
+                                this.horizon.obstacles[0].typeConfig.width,
+                                this.horizon.obstacles[0].typeConfig.height,
+                                this.currentSpeed,
+                                true
+                            )
+                        }
+                    }
                 }
             }
             if (
@@ -415,6 +482,9 @@ Runner.prototype = {
             e.type == Runner.events.MOUSEDOWN;
         if (this.isRunning() && isjumpKey) {
             this.tRex.endJump();
+            if (this.activated && !runnerObj.crashed && runnerObj.player == RL) {
+                startRLTraining(runnerObj);
+            }
         } else if (Runner.keycodes.DUCK[keyCode]) {
             this.tRex.speedDrop = false;
         } else if (this.crashed) {
@@ -431,6 +501,7 @@ Runner.prototype = {
             }
         } else if (this.paused && isjumpKey) {
             this.play();
+            gamePlayStarted()
         }
     },
     raq: function () {
@@ -515,6 +586,19 @@ Runner.prototype = {
             sourceNode.connect(this.audioContext.destination);
             sourceNode.start(0);
         }
+    },
+    jump: function () {
+        if (!this.crashed) {
+            this.tRex.startJump();
+        }
+    },
+    jump: function (callback) {
+        if (!this.crashed) {
+            this.tRex.startJump();
+        }
+    },
+    willItCrashRunning: function () {
+        return this.horizon.obstacles.length > 0 && this.horizon.obstacles[0].xPos - this.tRex.xPos < 80 ? true : false;
     }
 };
 // Updates the canvas size taking into account the backing store pixel ratio and the device pixel ratio.
@@ -563,4 +647,33 @@ function decodeBase64ToArrayBuffer(base64String) {
 }
 function getTimeStamp() {
     return performance.now();
+}
+
+function makeJump() {
+    runnerObj.jump()
+}
+
+function makeJumpViaBot(jump) {
+    if (jump == 1)
+        runnerObj.jump();
+    return new Promise((resolve) => {
+        if (jump == 1) {
+            runnerObj.rewardPromise = resolve;
+        } else {
+            runnerObj.rewardPromise = undefined;
+            if (runnerObj.willItCrashRunning()) {
+                resolve(-1);
+            } else {
+                resolve(1);
+            }
+        }
+
+    });
+}
+
+function startGameForTraining() {
+    if (runnerObj.crashed)
+        runnerObj.restart();
+    else
+        runnerObj.startGame();
 }
